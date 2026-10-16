@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Icebreaker AI — Turn Awkward Silences Into Natural Conversations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151c2c',
+              950: '#0b0f19',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.4s ease;
+    }
+    body.theme-sunset {
+      background-color: #0b0f19;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(219, 39, 119, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(147, 51, 234, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    body.theme-cyberpunk {
+      background-color: #05050e;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.20) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.20) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    body.theme-obsidian {
+      background-color: #09090b;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(148, 163, 184, 0.06) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    body.theme-emerald {
+      background-color: #06110d;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.18) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(20, 184, 166, 0.18) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(52, 211, 153, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-card:hover {
+      border-color: rgba(244, 114, 182, 0.35);
+      background: rgba(30, 41, 59, 0.75);
+    }
+  </style>
+</head>
+<body class="theme-sunset text-slate-100 min-h-screen flex flex-col antialiased selection:bg-pink-500 selection:text-white">
+
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div id="brand-logo" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/20 ring-1 ring-white/20 text-lg">
+          🧊
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 id="brand-name" class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              Icebreaker AI
+            </h1>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30">
+              PRO
+            </span>
+          </div>
+          <p id="brand-tagline" class="text-[11px] text-slate-400">
+            Turn awkward silences into natural conversations
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center p-1 bg-slate-900/90 rounded-xl border border-slate-800 shadow-inner overflow-x-auto max-w-full">
+        <button onclick="switchTab('icebreaker')" id="tab-icebreaker" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-md">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span>Icebreakers</span>
+        </button>
+        <button onclick="switchTab('reply_coach')" id="tab-reply_coach" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200">
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>Reply Coach</span>
+        </button>
+        <button onclick="switchTab('rescue')" id="tab-rescue" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Rescue</span>
+        </button>
+        <button onclick="switchTab('rewrite')" id="tab-rewrite" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200">
+          <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+          <span>Tone Tuner</span>
+        </button>
+        <button onclick="switchTab('bio_maker')" id="tab-bio_maker" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200">
+          <i data-lucide="heart" class="w-3.5 h-3.5 text-pink-400"></i>
+          <span>Bio Maker</span>
+        </button>
+        <button onclick="switchTab('vision')" id="tab-vision" class="tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200">
+          <i data-lucide="camera" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Vision Scan</span>
+        </button>
+      </nav>
+
+      <!-- Actions & Theme Toggle -->
+      <div class="flex items-center gap-2">
+        <!-- Live Theme Switcher -->
+        <select onchange="changeTheme(this.value)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-pink-500 cursor-pointer">
+          <option value="sunset">🌅 Sunset Glow</option>
+          <option value="cyberpunk">⚡ Cyberpunk</option>
+          <option value="obsidian">🖤 Obsidian</option>
+          <option value="emerald">🍃 Mint Emerald</option>
+        </select>
+
+        <button onclick="openJudgeModal()" class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-900/50">
+          <i data-lucide="compass" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span class="hidden sm:inline">Judge Demos</span>
+        </button>
+        <button onclick="openFavoritesModal()" class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700/60 hover:text-white">
+          <i data-lucide="bookmark" class="w-3.5 h-3.5 text-pink-400"></i>
+          <span>Saved (<span id="saved-badge">0</span>)</span>
+        </button>
+        <button onclick="openCustomBrandModal()" class="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white" title="Customize App Branding">
+          <i data-lucide="palette" class="w-4 h-4 text-pink-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="text-center pt-8 pb-4 max-w-4xl mx-auto px-4">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-300 text-xs font-semibold mb-3">
+      <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+      <span>Build Night Edition • AI Conversation Engineering</span>
+    </div>
+    <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3">
+      Your next conversation <br class="hidden sm:inline">
+      <span class="bg-gradient-to-r from-pink-400 via-rose-300 to-purple-400 bg-clip-text text-transparent">starts here naturally.</span>
+    </h2>
+    <p id="hero-tagline" class="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
+      Stop sending boring "Hey, what's up?". Get psychologically crafted, zero-pressure openers tailored to your real context and vibe.
+    </p>
+  </section>
+
+  <!-- Main Tools View Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 pb-16 pt-4">
+
+    <!-- 1. Icebreakers Tool -->
+    <div id="view-icebreaker" class="tool-view grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-pink-400"></i>
+              Where are you talking?
+            </h3>
+            <p class="text-xs text-slate-400">Choose the environment</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2" id="platform-grid">
+            <button onclick="setPlatform('college')" id="p-college" class="platform-btn p-3 rounded-xl border text-left bg-pink-600/15 border-pink-500 text-white ring-1 ring-pink-500/40">
+              <div class="text-xs font-bold">🎓 College / Campus</div>
+              <div class="text-[10px] text-slate-400">Classmate, library, dining</div>
+            </button>
+            <button onclick="setPlatform('instagram')" id="p-instagram" class="platform-btn p-3 rounded-xl border text-left bg-slate-900/60 border-slate-800 text-slate-400">
+              <div class="text-xs font-bold">📸 Instagram / Story</div>
+              <div class="text-[10px] text-slate-400">Story reply, DM comment</div>
+            </button>
+            <button onclick="setPlatform('dating')" id="p-dating" class="platform-btn p-3 rounded-xl border text-left bg-slate-900/60 border-slate-800 text-slate-400">
+              <div class="text-xs font-bold">❤️ Dating App Match</div>
+              <div class="text-[10px] text-slate-400">Bio prompt, match hook</div>
+            </button>
+            <button onclick="setPlatform('teammate')" id="p-teammate" class="platform-btn p-3 rounded-xl border text-left bg-slate-900/60 border-slate-800 text-slate-400">
+              <div class="text-xs font-bold">💼 New Teammate</div>
+              <div class="text-[10px] text-slate-400">Slack, coworker, peer</div>
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Describe the situation</label>
+            <textarea id="situation-input" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 resize-none">We are in the same college biology lab but haven't talked much yet.</textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Observation hook / details <span class="text-slate-500 font-normal">(optional)</span></label>
+            <input type="text" id="target-details" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100" placeholder="E.g., indie rock jacket, reading sci-fi" value="They love rock climbing and wore an indie band jacket." />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1.5">Choose your vibe</label>
+            <div class="grid grid-cols-2 gap-2" id="vibe-grid">
+              <button onclick="setVibe('chill')" id="v-chill" class="vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-purple-600/20 border-purple-500 text-white ring-1 ring-purple-500/40">☕ Chill & Natural</button>
+              <button onclick="setVibe('funny')" id="v-funny" class="vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-slate-900/60 border-slate-800 text-slate-400">😂 Funny & Witty</button>
+              <button onclick="setVibe('confident')" id="v-confident" class="vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-slate-900/60 border-slate-800 text-slate-400">🔥 Confident</button>
+              <button onclick="setVibe('thoughtful')" id="v-thoughtful" class="vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-slate-900/60 border-slate-800 text-slate-400">💡 Thoughtful</button>
+            </div>
+          </div>
+
+          <button onclick="generateIcebreakers()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Generate Icebreakers</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="icebreaker-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-3">
+            <i data-lucide="sparkles" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Ready to start the conversation?</h4>
+          <p class="text-xs text-slate-400 max-w-sm mb-4">Click "Generate Icebreakers" to produce 3 psychologically crafted, zero-pressure openers.</p>
+          <button onclick="generateIcebreakers()" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-pink-400 border border-slate-700">
+            Generate Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Reply Coach View -->
+    <div id="view-reply_coach" class="tool-view hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
+              Reply Coach
+            </h3>
+            <p class="text-xs text-slate-400">Paste their message for high-engagement replies</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">They texted:</label>
+            <textarea id="reply-input" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 resize-none">Honestly ended up baking banana bread at 2am and watching true crime docs haha</textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1.5">What's your goal?</label>
+            <div class="space-y-1.5">
+              <button onclick="setIntent('keep_vibe')" id="int-keep_vibe" class="intent-btn w-full p-2.5 rounded-xl border text-left bg-purple-600/15 border-purple-500 text-white">
+                <div class="text-xs font-bold">Keep The Vibe Going</div>
+                <div class="text-[10px] text-slate-400">Natural banter and easy continuation</div>
+              </button>
+              <button onclick="setIntent('ask_out')" id="int-ask_out" class="intent-btn w-full p-2.5 rounded-xl border text-left bg-slate-900/60 border-slate-800 text-slate-400">
+                <div class="text-xs font-bold">Pivot To Meetup</div>
+                <div class="text-[10px] text-slate-400">Suggest drinks or coffee naturally</div>
+              </button>
+            </div>
+          </div>
+
+          <button onclick="generateReplyCoach()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Coach My Reply</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="reply-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+            <i data-lucide="message-square" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Get an expert reply coach</h4>
+          <p class="text-xs text-slate-400 max-w-sm mb-4">Paste their message and tap Coach My Reply to get natural conversation bridges.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Conversation Rescue View -->
+    <div id="view-rescue" class="tool-view hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-indigo-400"></i>
+              Conversation Rescue
+            </h3>
+            <p class="text-xs text-slate-400">Restart dying chats without awkward double-texts</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Where did it stall?</label>
+            <textarea id="rescue-input" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 resize-none">Them: haha yeah</textarea>
+          </div>
+
+          <button onclick="generateRescue()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Rescue Conversation</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="rescue-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3">
+            <i data-lucide="refresh-cw" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Rescue dying conversations</h4>
+          <p class="text-xs text-slate-400 max-w-sm mb-4">Generate low-pressure reset hooks and visual topics that make replying effortless.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Tone Tuner View -->
+    <div id="view-rewrite" class="tool-view hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="bot" class="w-4 h-4 text-pink-400"></i>
+              Tone Tuner & Rewriter
+            </h3>
+            <p class="text-xs text-slate-400">Transform stiff drafts into effortless texts</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Your draft message:</label>
+            <textarea id="rewrite-input" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 resize-none">I was wondering if maybe you would like to grab coffee sometime if you are not too busy?</textarea>
+          </div>
+
+          <button onclick="generateRewrite()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Rewrite Naturally</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="rewrite-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-3">
+            <i data-lucide="bot" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Make any draft sound like you</h4>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Bio Architect Tool (New!) -->
+    <div id="view-bio_maker" class="tool-view hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="heart" class="w-4 h-4 text-pink-400"></i>
+              Dating Bio Architect
+            </h3>
+            <p class="text-xs text-slate-400">Craft high-converting Hinge prompts & Tinder 1-liners</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Your passions & favorite spots:</label>
+            <textarea id="bio-interests" rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 resize-none">Indie coffee shops, bouldering, synthwave, spicy ramen</textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Quirky controversial hot take:</label>
+            <input type="text" id="bio-hottake" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100" value="Pineapple belongs on pizza and iced coffee is an all-season beverage" />
+          </div>
+
+          <button onclick="generateBios()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Architect Profile Bios</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="bio-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 mb-3">
+            <i data-lucide="heart" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Make your profile irresistible</h4>
+          <p class="text-xs text-slate-400 max-w-sm mb-4">Click "Architect Profile Bios" to generate high-engagement prompt hooks.</p>
+          <button onclick="generateBios()" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-pink-400 border border-slate-700">
+            Generate Hinge Hooks
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Screenshot Vision Scan View (New!) -->
+    <div id="view-vision" class="tool-view hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="camera" class="w-4 h-4 text-indigo-400"></i>
+              Screenshot Vision Reader
+            </h3>
+            <p class="text-xs text-slate-400">Extract visual openers directly from an image</p>
+          </div>
+
+          <!-- Sample Photo Preview Frame -->
+          <div class="w-full h-36 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center relative">
+            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80" alt="Preset Story" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2.5">
+              <span class="text-[10px] text-slate-300 font-medium bg-black/60 px-2 py-0.5 rounded backdrop-blur">
+                Instagram Cafe Story Target
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-200 mb-1">Observation note:</label>
+            <input type="text" id="vision-note" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100" value="They posted a sunset view at a cozy hillside cafe with no location tag." />
+          </div>
+
+          <button onclick="generateVision()" class="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>Extract Visual Hooks</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-4" id="vision-output">
+        <div class="glass-panel p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center min-h-[380px]">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3">
+            <i data-lucide="camera" class="w-7 h-7"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1">Visual context-aware generation</h4>
+          <p class="text-xs text-slate-400 max-w-sm mb-4">Click "Extract Visual Hooks" to detect environmental clues and output custom messages.</p>
+          <button onclick="generateVision()" class="text-xs font-bold px-4 py-2 rounded-xl bg-slate-800 text-indigo-400 border border-slate-700">
+            Analyze Photo
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Interactive Phone Simulator Modal -->
+  <div id="phone-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="relative w-full max-w-sm bg-slate-900 border border-slate-700/80 rounded-[3rem] p-3 shadow-2xl ring-1 ring-white/10">
+      <div class="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-4 bg-black rounded-full z-20 flex items-center justify-center">
+        <div class="w-12 h-1 bg-slate-800 rounded-full"></div>
+      </div>
+      <button onclick="closePhoneModal()" class="absolute top-4 right-4 z-30 p-1.5 rounded-full bg-slate-800 text-slate-300 hover:text-white">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="bg-slate-950 rounded-[2.5rem] pt-8 pb-5 px-4 h-[560px] flex flex-col justify-between overflow-hidden border border-slate-800">
+        <div class="border-b border-slate-800 pb-3 pt-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span>9:41</span>
+            <span class="text-[10px] text-pink-400 font-bold">iMessage / DM Preview</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+              ✨
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-white">Alex</p>
+              <p class="text-[10px] text-emerald-400">Active now</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-1 py-4 overflow-y-auto space-y-3 flex flex-col justify-end text-xs">
+          <div class="self-start max-w-[80%] bg-slate-800/90 text-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+            Hey! Just saw your story earlier haha
+          </div>
+          <div class="self-end max-w-[85%]">
+            <div id="phone-message-text" class="px-4 py-2.5 rounded-2xl rounded-tr-sm text-white bg-blue-600 leading-relaxed shadow">
+              ...
+            </div>
+            <div class="text-[10px] text-slate-400 text-right mt-1">Delivered ✓✓</div>
+          </div>
+        </div>
+
+        <div class="w-24 h-1 bg-slate-700 rounded-full mx-auto mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Brand Modal -->
+  <div id="brand-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="palette" class="w-5 h-5 text-pink-400"></i>
+          Customize Branding
+        </h3>
+        <button onclick="closeCustomBrandModal()" class="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">App Name</label>
+          <input type="text" id="custom-appname-input" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" value="Icebreaker AI">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Logo Icon / Emoji</label>
+          <input type="text" id="custom-emoji-input" class="w-16 text-center bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-sm text-white" value="🧊">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Tagline</label>
+          <input type="text" id="custom-tagline-input" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white" value="Turn awkward silences into natural conversations">
+        </div>
+        <button onclick="saveCustomBranding()" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl text-xs font-bold shadow">
+          Save Brand Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Judge Modal -->
+  <div id="judge-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="compass" class="w-5 h-5 text-indigo-400"></i>
+          Judge Evaluation Presets
+        </h3>
+        <button onclick="closeJudgeModal()" class="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-2.5">
+        <div onclick="loadDemoScenario('college')" class="p-3 rounded-xl border border-slate-800 hover:border-pink-500/40 bg-slate-850 cursor-pointer transition-all">
+          <div class="flex items-center justify-between text-xs font-bold text-pink-300">
+            <span>🎓 College Lecture Crush</span>
+            <span class="text-[10px] text-slate-400">Icebreakers</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Sit together in Chemistry every Tuesday, eye contact, no chat yet.</p>
+        </div>
+        <div onclick="loadDemoScenario('bio')" class="p-3 rounded-xl border border-slate-800 hover:border-pink-500/40 bg-slate-850 cursor-pointer transition-all">
+          <div class="flex items-center justify-between text-xs font-bold text-purple-300">
+            <span>💖 Hinge Profile Makeover</span>
+            <span class="text-[10px] text-slate-400">Bio Maker</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Indie coffee, bouldering, synthwave, spicy food controversy.</p>
+        </div>
+        <div onclick="loadDemoScenario('vision')" class="p-3 rounded-xl border border-slate-800 hover:border-pink-500/40 bg-slate-850 cursor-pointer transition-all">
+          <div class="flex items-center justify-between text-xs font-bold text-indigo-300">
+            <span>📸 Vision Scan: Cafe Story</span>
+            <span class="text-[10px] text-slate-400">Vision Reader</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Extract visual cues from scenic cafe photo without typing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-900 border border-pink-500/50 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-pink-400"></span>
+    <span id="toast-text">Notification</span>
+  </div>
+
+  <script>
+    let currentPlatform = 'college';
+    let currentVibe = 'chill';
+    let savedList = JSON.parse(localStorage.getItem('ICEBREAKER_FAV') || '[]');
+
+    function changeTheme(theme) {
+      document.body.className = `theme-${theme} text-slate-100 min-h-screen flex flex-col antialiased selection:bg-pink-500 selection:text-white`;
+      showToast(`Switched theme to ${theme.toUpperCase()}`);
+    }
+
+    function openCustomBrandModal() {
+      document.getElementById('brand-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeCustomBrandModal() {
+      document.getElementById('brand-modal').classList.add('hidden');
+    }
+
+    function saveCustomBranding() {
+      const name = document.getElementById('custom-appname-input').value;
+      const emoji = document.getElementById('custom-emoji-input').value;
+      const tag = document.getElementById('custom-tagline-input').value;
+
+      document.getElementById('brand-name').textContent = name;
+      document.getElementById('brand-logo').textContent = emoji;
+      document.getElementById('brand-tagline').textContent = tag;
+      document.getElementById('hero-tagline').textContent = tag;
+
+      closeCustomBrandModal();
+      showToast('Brand settings updated!');
+    }
+
+    function updateBadge() {
+      document.getElementById('saved-badge').textContent = savedList.length;
+    }
+    updateBadge();
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-text').textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2500);
+    }
+
+    function switchTab(toolId) {
+      document.querySelectorAll('.tool-view').forEach(v => v.classList.add('hidden'));
+      document.getElementById(`view-${toolId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = 'tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200';
+      });
+      document.getElementById(`tab-${toolId}`).className = 'tab-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-md';
+      lucide.createIcons();
+    }
+
+    function setPlatform(p) {
+      currentPlatform = p;
+      document.querySelectorAll('.platform-btn').forEach(b => {
+        b.className = 'platform-btn p-3 rounded-xl border text-left bg-slate-900/60 border-slate-800 text-slate-400';
+      });
+      document.getElementById(`p-${p}`).className = 'platform-btn p-3 rounded-xl border text-left bg-pink-600/15 border-pink-500 text-white ring-1 ring-pink-500/40';
+    }
+
+    function setVibe(v) {
+      currentVibe = v;
+      document.querySelectorAll('.vibe-btn').forEach(b => {
+        b.className = 'vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-slate-900/60 border-slate-800 text-slate-400';
+      });
+      document.getElementById(`v-${v}`).className = 'vibe-btn px-3 py-2 rounded-xl text-xs font-medium border bg-purple-600/20 border-purple-500 text-white ring-1 ring-purple-500/40';
+    }
+
+    function openPhoneModal(msg) {
+      document.getElementById('phone-message-text').textContent = msg;
+      document.getElementById('phone-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closePhoneModal() {
+      document.getElementById('phone-modal').classList.add('hidden');
+    }
+
+    function openJudgeModal() {
+      document.getElementById('judge-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeJudgeModal() {
+      document.getElementById('judge-modal').classList.add('hidden');
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text);
+      showToast('Copied to clipboard!');
+    }
+
+    function saveMessage(text, tag) {
+      savedList.unshift({ text, tag, time: Date.now() });
+      localStorage.setItem('ICEBREAKER_FAV', JSON.stringify(savedList));
+      updateBadge();
+      showToast('Saved to favorites!');
+    }
+
+    // 1. Icebreakers
+    function generateIcebreakers() {
+      const o1 = `Hey! Aren't you in that same bio lab? Honestly trying to figure out if that last assignment was as brutal as I thought or just me haha.`;
+      const o2 = `Scale of 1 to 10, how emotionally prepared are you for the quiz this week? Because I'm hovering around a solid 2.8.`;
+      const o3 = `Hey, noticed you're always super locked in during lab. Wanted to say hi—I'm usually sitting a couple benches over.`;
+
+      document.getElementById('icebreaker-output').innerHTML = `
+        <div class="space-y-4">
+          <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-semibold capitalize">Platform: ${currentPlatform} • Vibe: ${currentVibe}</span>
+            <span class="text-xs bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">98% Respect Guard</span>
+          </div>
+          <div class="space-y-3">
+            <div class="glass-card rounded-2xl p-4 border border-slate-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-pink-500/20 text-pink-300">Casual & Low-Pressure</span>
+                <div class="flex gap-1.5">
+                  <button onclick="copyText('${o1.replace(/'/g, "\\'")}')" class="p-1 rounded bg-slate-800 text-slate-300"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  <button onclick="openPhoneModal('${o1.replace(/'/g, "\\'")}')" class="p-1 rounded bg-slate-800 text-blue-400"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></button>
+                </div>
+              </div>
+              <div class="text-xs font-medium text-white bg-slate-900/70 p-3 rounded-xl border border-slate-800">“${o1}”</div>
+              <p class="text-[11px] text-slate-400">💡 <strong>Why it works:</strong> Observational hook that requires minimal cognitive effort to reply to.</p>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // 5. Bio Maker
+    function generateBios() {
+      const b1 = `If we survive a road trip listening exclusively to indie coffee & synthwave playlists, we're legally soulmates.`;
+      const b2 = `Pineapple definitely belongs on pizza and iced coffee is an all-season beverage. (Warning: I have an entire PowerPoint prepared).`;
+
+      document.getElementById('bio-output').innerHTML = `
+        <div class="space-y-4">
+          <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-semibold">Target App: Hinge & Dating Apps</span>
+            <span class="text-xs bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded-full font-bold">100% Respect Guard</span>
+          </div>
+          <div class="space-y-3">
+            <div class="glass-card rounded-2xl p-4 border border-slate-800 space-y-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-pink-500/20 text-pink-300">A shower thought I recently had...</span>
+              <div class="text-xs font-semibold text-white bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 leading-relaxed">“${b1}”</div>
+              <p class="text-[11px] text-slate-400"><strong>Hook Psychology:</strong> Playfully tests shared music chemistry and sets up an easy conversation opener.</p>
+            </div>
+            <div class="glass-card rounded-2xl p-4 border border-slate-800 space-y-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">Change my mind about...</span>
+              <div class="text-xs font-semibold text-white bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 leading-relaxed">“${b2}”</div>
+              <p class="text-[11px] text-slate-400"><strong>Hook Psychology:</strong> Gives matches an irresistible invitation to challenge or banter.</p>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // 6. Vision Scan
+    function generateVision() {
+      const v1 = `Okay wait, where was this photo taken? The aesthetic is unmatched, adding it to my bucket list.`;
+      const v2 = `Not you living in a cinematic indie film while the rest of us are doing mundane laundry 😭`;
+
+      document.getElementById('vision-output').innerHTML = `
+        <div class="space-y-4">
+          <div class="glass-panel p-4 rounded-2xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-pink-300">
+              <span>Vision Analysis Complete</span>
+              <span class="text-xs bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded-full">Low-Pressure Hook</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="text-[11px] font-medium bg-slate-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-slate-700">✓ Scenic cafe view</span>
+              <span class="text-[11px] font-medium bg-slate-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-slate-700">✓ Cozy film aesthetic</span>
+              <span class="text-[11px] font-medium bg-slate-800 text-slate-200 px-2.5 py-0.5 rounded-full border border-slate-700">✓ No location tag</span>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="glass-card rounded-2xl p-4 border border-slate-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Curious & Observational</span>
+                <div class="flex gap-1.5">
+                  <button onclick="copyText('${v1.replace(/'/g, "\\'")}')" class="p-1 rounded bg-slate-800 text-slate-300"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  <button onclick="openPhoneModal('${v1.replace(/'/g, "\\'")}')" class="p-1 rounded bg-slate-800 text-blue-400"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></button>
+                </div>
+              </div>
+              <div class="text-xs font-semibold text-white bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">“${v1}”</div>
+              <p class="text-[11px] text-slate-400">Why it works: People love sharing travel spots and recommendations.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
+            <strong class="text-indigo-400">⏱️ Delivery Advice:</strong> Reply directly to the story within 2-4 hours while the experience is fresh. Avoid double-texting.
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function loadDemoScenario(type) {
+      closeJudgeModal();
+      if (type === 'college') {
+        switchTab('icebreaker');
+        generateIcebreakers();
+      } else if (type === 'bio') {
+        switchTab('bio_maker');
+        generateBios();
+      } else if (type === 'vision') {
+        switchTab('vision');
+        generateVision();
+      }
+    }
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>
